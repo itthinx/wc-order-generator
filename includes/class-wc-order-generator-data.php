@@ -1,5 +1,23 @@
 <?php
-
+/**
+ * class-wc-order-generator-data.php
+ *
+ * Copyright (c) 2017 "kento" Karim Rahimpur www.itthinx.com
+ *
+ * This code is released under the GNU General Public License.
+ * See COPYRIGHT.txt and LICENSE.txt.
+ *
+ * This code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * This header and all notices must be kept intact.
+ *
+ * @author itthinx
+ * @package wc-order-generator
+ * @since 1.0.0
+ */
 
 if ( !defined( 'ABSPATH' ) ) {
 	exit;
@@ -12,9 +30,15 @@ class WC_Order_Generator_Data {
 	 * @return string
 	 */
 	public function get_username() {
-		$t = time();
-		$r = rand();
-		return "user-$t-$r.png";
+		global $wpdb;
+		if ( $max_user_id = $wpdb->get_var( "SELECT MAX(ID) FROM $wpdb->users" ) ) {
+			$suffix = '' . ( intval( $max_user_id ) + 1 );
+		} else {
+			$t = time();
+			$r = rand();
+			$suffix = "$t-$r";
+		}
+		return "user-$suffix";
 	}
 
 	/**
@@ -114,7 +138,8 @@ class WC_Order_Generator_Data {
 			$wc_countries = new WC_Countries();
 			$countries    = $wc_countries->get_allowed_countries();
 			$country      = array_rand( $countries, 1 );
-			$state        = array_rand( $wc_countries->get_states( $countries ), 1 );
+			$states       = $wc_countries->get_states( $country );
+			$state        = count( $states ) > 0 ? ( is_array( $states ) ? array_rand( $states, 1 ) : $states ) : '';
 			$city         = $this->get_city();
 			$street       = $this->get_street() . ', ' . rand( 1, 1000 );
 			$postcode     = $this->get_postcode();
@@ -169,10 +194,3 @@ class WC_Order_Generator_Data {
 		return $user_id;
 	}
 }
-// @todo remove
-function test_banana() {
-	$d = new WC_Order_Generator_Data();
-	$user_id = $d->create_user();
-	error_log('created user? : '.var_export($user_id,true));
-}
-add_action( 'init', 'test_banana' );

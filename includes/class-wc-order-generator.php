@@ -131,8 +131,8 @@ class WC_Order_Generator {
 			if ( isset( $_POST['action'] ) && ( $_POST['action'] == 'save' ) && wp_verify_nonce( $_POST['order-generator'], 'admin' ) ) {
 				$limit    = !empty( $_POST['limit'] ) ? intval( trim( $_POST['limit'] ) ) : self::DEFAULT_LIMIT;
 				$per_run  = !empty( $_POST['per_run'] ) ? intval( trim( $_POST['per_run'] ) ) : self::DEFAULT_PER_RUN;
-				$titles   = !empty( $_POST['titles'] ) ? $_POST['titles'] : '';
-				$contents = !empty( $_POST['contents'] ) ? $_POST['contents'] : '';
+// 				$titles   = !empty( $_POST['titles'] ) ? $_POST['titles'] : '';
+// 				$contents = !empty( $_POST['contents'] ) ? $_POST['contents'] : '';
 
 				if ( $limit < 0 ) {
 					$limit = self::DEFAULT_LIMIT;
@@ -149,11 +149,11 @@ class WC_Order_Generator {
 				delete_option( 'wc-order-generator-per-run' );
 				add_option( 'wc-order-generator-per-run', $per_run, null, 'no' );
 
-				delete_option( 'wc-order-generator-titles' );
-				add_option( 'wc-order-generator-title', $titles, null, 'no' );
+// 				delete_option( 'wc-order-generator-titles' );
+// 				add_option( 'wc-order-generator-title', $titles, null, 'no' );
 
-				delete_option( 'wc-order-generator-contents' );
-				add_option( 'wc-order-generator-contents', $contents, null, 'no' );
+// 				delete_option( 'wc-order-generator-contents' );
+// 				add_option( 'wc-order-generator-contents', $contents, null, 'no' );
 			} else if ( isset( $_POST['action'] ) && ( $_POST['action'] == 'generate' ) && wp_verify_nonce( $_POST['order-generate'], 'admin' ) ) {
 				$max = isset( $_POST['max'] ) ? intval( $_POST['max'] ) : 0;
 				if ( $max > 0 ) {
@@ -168,21 +168,21 @@ class WC_Order_Generator {
 				delete_option( 'wc-order-generator-per-run' );
 				add_option( 'wc-order-generator-per-run', self::DEFAULT_PER_RUN, null, 'no' );
 
-				delete_option( 'wc-order-generator-titles' );
-				add_option( 'wc-order-generator-title', self::DEFAULT_TITLES, null, 'no' );
+// 				delete_option( 'wc-order-generator-titles' );
+// 				add_option( 'wc-order-generator-title', self::DEFAULT_TITLES, null, 'no' );
 
-				delete_option( 'wc-order-generator-contents' );
-				add_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS, null, 'no' );
+// 				delete_option( 'wc-order-generator-contents' );
+// 				add_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS, null, 'no' );
 			}
 
 			$limit    = get_option( 'wc-order-generator-limit', self::DEFAULT_LIMIT );
 			$per_run  = get_option( 'wc-order-generator-per-run', self::DEFAULT_PER_RUN );
-			$titles   = stripslashes( get_option( 'wc-order-generator-titles', self::DEFAULT_TITLES ) );
-			$contents = stripslashes( get_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS ) );
+// 			$titles   = stripslashes( get_option( 'wc-order-generator-titles', self::DEFAULT_TITLES ) );
+// 			$contents = stripslashes( get_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS ) );
 
-			$titles = explode( "\n", $titles );
-			sort( $titles );
-			$titles = trim( implode( "\n", $titles ) );
+// 			$titles = explode( "\n", $titles );
+// 			sort( $titles );
+// 			$titles = trim( implode( "\n", $titles ) );
 
 			echo '<h1>';
 			echo __( 'Order Generator', WCORDERGEN_PLUGIN_DOMAIN );
@@ -228,25 +228,25 @@ class WC_Order_Generator {
 			echo '</label>';
 			echo '</p>';
 
-			echo '<p>';
-			echo '<label>';
-			echo __( 'Titles', WCORDERGEN_PLUGIN_DOMAIN );
-			echo '<br/>';
-			echo '<textarea name="titles" style="height:10em;width:90%;">';
-			echo htmlentities( $titles );
-			echo '</textarea>';
-			echo '</label>';
-			echo '</p>';
+// 			echo '<p>';
+// 			echo '<label>';
+// 			echo __( 'Titles', WCORDERGEN_PLUGIN_DOMAIN );
+// 			echo '<br/>';
+// 			echo '<textarea name="titles" style="height:10em;width:90%;">';
+// 			echo htmlentities( $titles );
+// 			echo '</textarea>';
+// 			echo '</label>';
+// 			echo '</p>';
 
-			echo '<p>';
-			echo '<label>';
-			echo __( 'Contents', WCORDERGEN_PLUGIN_DOMAIN );
-			echo '<br/>';
-			echo '<textarea name="contents" style="height:20em;width:90%;">';
-			echo htmlentities( $contents );
-			echo '</textarea>';
-			echo '</label>';
-			echo '</p>';
+// 			echo '<p>';
+// 			echo '<label>';
+// 			echo __( 'Contents', WCORDERGEN_PLUGIN_DOMAIN );
+// 			echo '<br/>';
+// 			echo '<textarea name="contents" style="height:20em;width:90%;">';
+// 			echo htmlentities( $contents );
+// 			echo '</textarea>';
+// 			echo '</label>';
+// 			echo '</p>';
 
 			wp_nonce_field( 'admin', 'order-generator', true, true );
 
@@ -376,7 +376,6 @@ class WC_Order_Generator {
 	 * @return int
 	 */
 	public static function get_order_count() {
-		//$counts = wp_count_posts( 'product' ); // <-- nah ... :|
 		global $wpdb;
 		return intval( $wpdb->get_var(
 			"SELECT count(*) FROM $wpdb->posts WHERE post_type = 'shop_order'"
@@ -384,244 +383,143 @@ class WC_Order_Generator {
 	}
 
 	public static function create_order() {
-		$user_id = self::get_user_id(); 
-		$title = self::get_title();
-		$i = 0;
-		while( ( $i < 99 ) ) {
-			if ( get_page_by_title( $title, OBJECT, 'shop_order' ) ) {
-				$title .= " " . self::get_title();
-			} else {
-				break;
-			}
-			$i++;
+
+		global $wpdb, $woocommerce;
+
+		if ( empty( $woocommerce ) ) {
+			return null;
 		}
 
-		$content = self::get_content();
-		$excerpt = self::get_excerpt( 3, $content );
+		set_time_limit( 0 );
 
-		$post_id = wp_insert_post( array(
-			'post_type' => 'product',
-			'post_title' => $title,
-			'post_excerpt' => $excerpt,
-			'post_content' => $content,
-			'post_status' => 'publish',
-			'post_author' => $user_id
-		) );
-		if ( !( $post_id instanceof WP_Error ) ) {
+		$min_products = 1; // @todo configurable
+		$max_products = 25; // @todo configurable
+		$min_quantity = 1; // @todo configurable
+		$max_quantity = 10; // @todo configurable
 
-			// visibility
-			update_post_meta( $post_id, '_visibility', 'visible' );
+		$order_status_processing_probability = 8 / 10;
+		$order_status_completed_probability = 7 / 10;
+		$order_status_change_probability = 2 / 7;
 
-			// price
-			$price = wc_format_decimal( floatval( rand( 1, 10000 ) ) / 100.0 );
-			update_post_meta( $post_id, '_price', $price );
-			update_post_meta( $post_id, '_regular_price', $price );
+		$data = new WC_Order_Generator_Data();
+		$user_id = $data->create_user();
 
-			// add categories
-			$terms = array();
-			$cats = explode( "\n", self::DEFAULT_CATEGORIES );
-			$c_n = count( $cats );
-			$c_max = rand( 1, 3 );
-			for ( $i = 0; $i < $c_max ; $i++ ) {
-				$terms[] = $cats[rand( 0, $c_n - 1 )];
-			}
-			wp_set_object_terms( $post_id, $terms, 'product_cat', true );
+// 		$woocommerce->init();
+// 		$woocommerce->frontend_includes();
+// 		$session_class = apply_filters( 'woocommerce_session_handler', 'WC_Session_Handler' );
 
-			// add tags
-			$tags = explode( " ", $title );
-			$tags[] = 'progen';
-			$potential = explode( " ", $content );
-			$n = count( $potential );
-			$t_max = rand( 1, 7 );
-			for ( $i = 0; $i < $t_max ; $i++ ) {
-				$tags[] = preg_replace( "/[^a-zA-Z0-9 ]/", '', $potential[rand( 0, $n-1 )] );
-			}
-			wp_set_object_terms( $post_id, $tags, 'product_tag', true );
+// 		require_once WC()->plugin_path() .'/includes/abstracts/abstract-wc-session.php';
+// 		$woocommerce->session       = new WC_Session_Handler();
+// 		$woocommerce->cart          = new WC_Cart();
+// 		$woocommerce->customer      = new WC_Customer( $user_id );
+// 		$woocommerce->countries     = new WC_Countries();
+// 		$woocommerce->checkout      = new WC_Checkout();
+// 		$woocommerce->order_factory = new WC_Order_Factory();
+// 		$woocommerce->integrations  = new WC_Integrations();
 
-			// product image
-			$image = self::get_image();
-			$image_name = self::get_image_name();
-			$r = wp_upload_bits( $image_name, null, $image );
-			if ( !empty( $r ) && is_array( $r ) && !empty( $r['file'] ) ) {
-				$filetype = wp_check_filetype( $r['file'] );
-				$attachment_id = wp_insert_attachment(
-					array(
-						'post_title' => $title,
-						'post_mime_type' => $filetype['type'],
-						'post_status' => 'publish',
-						'post_author' => $user_id
-					),
-					$r['file'],
-					$post_id
-				);
-				if ( !empty( $attachment_id ) ) {
-					include_once ABSPATH . 'wp-admin/includes/image.php';
-					if ( function_exists( 'wp_generate_attachment_metadata' ) ) {
-						$meta = wp_generate_attachment_metadata( $attachment_id, $r['file'] );
-						wp_update_attachment_metadata( $attachment_id, $meta );
-					}
-					update_post_meta( $post_id, '_thumbnail_id', $attachment_id );
+// 		if ( !defined( 'WOOCOMMERCE_CHECKOUT' ) ) {
+// 			define('WOOCOMMERCE_CHECKOUT', true);
+// 		}
+// 		$woocommerce->cart->empty_cart();
+		// that returns an emnpty array ...
+		//$product_ids = wc_get_products( array( 'status' => 'publish', 'return' => 'ids' ) );
+		// ... so ...
+		$product_ids = array();
+		$_product_ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'product' AND post_status='publish'" );
+		foreach( $_product_ids as $product_id ) {
+			$product_ids[] = $product_id;
+		}
+		unset( $_product_ids );
+		if ( count( $product_ids ) == 0 ) {
+			return null;
+		}
+		$n_products = rand( $min_products, $max_products );
+// 		$cart = array();
+// 		for( $i = 0; $i < $n_products; $i++ ) {
+// 			$product_id = $product_ids[rand( 0, count( $product_ids ) - 1 )];
+// 			$woocommerce->cart->add_to_cart( $product_id, rand( $min_quantity, $max_quantity ) );
+// 		}
+// 		$checkout = new WC_Checkout();
+// 		$woocommerce->cart->calculate_totals();
+		try {
+
+			$customer = new WC_Customer( $user_id );
+
+			$payment_method = array_rand( array( 'bacs','cheque','cod' ) );
+			$order = wc_create_order( array( 'customer_id' => $user_id ) );
+			if ( !( $order instanceof WP_Error ) ) {
+
+				$order->set_payment_method( $payment_method );
+
+				$order->set_billing_address_1( $customer->get_billing_address_1() );
+				$order->set_billing_country( $customer->get_billing_country() );
+				$order->set_billing_postcode( $customer->get_billing_postcode() );
+				$order->set_billing_phone( $customer->get_billing_phone() );
+				$order->set_billing_email( $customer->get_billing_email() );
+				$order->set_billing_city( $customer->get_billing_city() );
+				$order->set_billing_first_name( $customer->get_billing_first_name() );
+				$order->set_billing_last_name( $customer->get_billing_last_name() );
+				$order->set_billing_state( $customer->get_billing_state() );
+				
+				$order->set_shipping_address_1( $customer->get_billing_address_1() );
+				$order->set_shipping_country( $customer->get_billing_country() );
+				$order->set_shipping_postcode( $customer->get_billing_postcode() );
+				
+				
+				$order->set_shipping_city( $customer->get_billing_city() );
+				$order->set_shipping_first_name( $customer->get_billing_first_name() );
+				$order->set_shipping_last_name( $customer->get_billing_last_name() );
+				$order->set_shipping_state( $customer->get_billing_state() );
+
+				for( $i = 0; $i < $n_products; $i++ ) {
+					$product_id = $product_ids[rand( 0, count( $product_ids ) - 1 )];
+					$order->add_product( wc_get_product( $product_id ), rand( $min_quantity, $max_quantity ) );
 				}
-			}
-		}
-	}
 
-	/**
-	 * Returns the user ID of the order-generator user which is used as the
-	 * author of products generated. The user is created here if it doesn't
-	 * exist yet, with role Shop Manager.
-	 * 
-	 * @return int order-generator user ID
-	 */
-	public static function get_user_id() {
-		$user_id = get_current_user_id();
-		$user = get_user_by( 'login', 'order-generator' );
-		if ( $user instanceof WP_User ) {
-			$user_id = $user->ID;
-		} else {
+				$order->calculate_shipping();
+				$order->calculate_taxes();
+				$order->calculate_totals();
 
-			$user_pass = wp_generate_password( 12 );
-			$maybe_user_id = wp_insert_user( array(
-				'user_login' => 'order-generator',
-				'role'       => 'shop_manager',
-				'user_pass'  => $user_pass
-			) );
-			if ( !( $maybe_user_id instanceof WP_Error ) ) {
-				$user_id = $maybe_user_id;
-
-				// notify admin
-				$user = get_userdata( $user_id );
-				$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-
-				$message  = sprintf( __( 'Order generator user created on %s:', WCORDERGEN_PLUGIN_DOMAIN ), $blogname ) . "\r\n\r\n";
-				$message .= sprintf( __( 'Username: %s', WCORDERGEN_PLUGIN_DOMAIN ), $user->user_login ) . "\r\n\r\n";
-				$message .= sprintf( __( 'Password: %s', WCORDERGEN_PLUGIN_DOMAIN ), $user_pass ) . "\r\n\r\n";
-				$message .= __( 'The user has the role of a Shop Manager.', WCORDERGEN_PLUGIN_DOMAIN ) . "\r\n";
-
-				@wp_mail( get_option( 'admin_email' ), sprintf( __( '[%s] Order Generator User', WCORDERGEN_PLUGIN_DOMAIN ), $blogname ), $message);
-			}
-		}
-		return $user_id;
-	} 
-
-	/**
-	 * Produce a title.
-	 * 
-	 * @param int $n_words
-	 * @return string
-	 */
-	public static function get_title( $n_words = 3 ) {
-		$titles = trim( stripslashes( get_option( 'wc-order-generator-titles', self::DEFAULT_TITLES ) ) );
-		$titles = explode( "\n", $titles );
-		$title = array();
-		$n = count( $titles );
-		$n_words = rand( 1, $n_words );
-		for ( $i = 1; $i <= $n_words ; $i++ ) {
-			$title[] = $titles[rand( 0, $n - 1 )];
-		}
-		$title = implode( ' ', $title );
-		return $title;
-	}
-
-	/**
-	 * Produce the excerpt.
-	 *
-	 * @param int $n_lines
-	 * @return string
-	 */
-	public static function get_excerpt( $n_lines = 3, $contents = null ) {
-		if ( $contents === null ) {
-			$contents = trim( stripslashes( get_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS ) ) );
-		} else {
-			$contents = str_ireplace( '</p>', "\n", $contents );
-			$contents = str_ireplace( '<p>', '', $contents );
-		}
-		$contents = explode( "\n", $contents );
-		$content = array();
-		$n = count( $contents );
-		$n_lines = rand( 1, $n_lines );
-		for ( $i = 1; $i <= $n_lines ; $i++ ) {
-			$maybe_content = $contents[rand( 0, $n - 1 )];
-			if ( !in_array( $maybe_content, $content ) ) {
-				$content[] = $maybe_content;
-			}
-		}
-		$content = "<p>" . implode( "</p><p>", $content ) . "</p>";
-		return $content;
-	}
-
-	/**
-	 * Produce content.
-	 * 
-	 * @param int $n_lines
-	 * @return string
-	 */
-	public static function get_content( $n_lines = 10 ) {
-		$contents = trim( stripslashes( get_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS ) ) );
-		$contents = explode( "\n", $contents );
-		$content = array();
-		$n = count( $contents );
-		$n_lines = rand( 1, $n_lines );
-		for ( $i = 1; $i <= $n_lines ; $i++ ) {
-			$content[] = $contents[rand( 0, $n - 1 )];
-		}
-		$content = "<p>" . implode( "</p><p>", $content ) . "</p>";
-		return $content;
-	}
-
-	/**
-	 * Produce an image.
-	 * 
-	 * @return string image data
-	 */
-	public static function get_image() {
-		$output = '';
-		if ( function_exists( 'imagepng' ) ) {
-			$width = self::IMAGE_WIDTH;
-			$height = self::IMAGE_HEIGHT;
-
-			$image = imagecreatetruecolor( $width, $height );
-			for( $i = 0; $i <= 11; $i++ ) {
-				$x = rand( 0, $width );
-				$y = rand( 0, $height );
-				$w = rand( 1, $width );
-				$h = rand( 1, $height );
-				$red = rand( 0, 255 );
-				$green = rand( 0, 255 );
-				$blue  = rand( 0, 255 );
-				$color = imagecolorallocate( $image, $red, $green, $blue );
-				imagefilledrectangle(
-					$image,
-					$x - $w / 2,
-					$y - $h / 2,
-					$x + $w / 2,
-					$y + $h / 2,
-					$color
-				);
+				$order->set_status( 'on-hold' );
+				if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_processing_probability ) {
+					$order->set_status( 'processing' );
+				}
+				if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_completed_probability ) {
+					$order->set_status( 'completed' );
+				}
+				if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_change_probability ) {
+					$status = array_rand( array( 'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed' ) );
+					$order->set_status( $status );
+				}
+				$order->save();
+				$order_id = $order->get_id();
 			}
 
-			ob_start();
-			imagepng( $image );
-			$output = ob_get_clean();
-			imagedestroy( $image );
-		} else {
-			$image = file_get_contents( WCORDERGEN_PLUGIN_URL . '/images/placeholder.png' );
-			ob_start();
-			echo $image;
-			$output = ob_get_clean();
+// 			$order_id = $checkout->create_order( array( 'payment_method' => $payment_method ) );
+// 			if ( !( $order_id instanceof WP_Error ) ) {
+// 				if ( $order = wc_get_order( $order_id ) ) {
+// 					$order->set_customer_id( $user_id );
+// // 					$order->set_payment_method( $payment_method );
+// 					$order->set_status( 'on-hold' );
+// 					if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_processing_probability ) {
+// 						$order->set_status( 'processing' );
+// 					}
+// 					if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_completed_probability ) {
+// 						$order->set_status( 'completed' );
+// 					}
+// 					if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_change_probability ) {
+// 						$status = array_rand( array( 'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed' ) );
+// 						$order->set_status( $status );
+// 					}
+// 				}
+// 			} else {
+// 				$order_id = null;
+// 			}
+		} catch ( Exception $e ) {
+			$order_id = null;
 		}
-		return $output;
-
-	}
-
-	/**
-	 * Produce a name for an image.
-	 * @return string
-	 */
-	public static function get_image_name() {
-		$t = time();
-		$r = rand();
-		return "order-$t-$r.png";
+// 		$woocommerce->cart->empty_cart();
+		return $order_id;
 	}
 
 	/**
