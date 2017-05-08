@@ -449,6 +449,8 @@ class WC_Order_Generator {
 			$order = wc_create_order( array( 'customer_id' => $user_id ) );
 			if ( !( $order instanceof WP_Error ) ) {
 
+// 				$order->set_date_created( time() - rand( 0, 365*24*60*60 ) );
+
 				$order->set_payment_method( $payment_method );
 
 				$order->set_billing_address_1( $customer->get_billing_address_1() );
