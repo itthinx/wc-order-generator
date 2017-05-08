@@ -396,6 +396,8 @@ class WC_Order_Generator {
 		$max_products = 25; // @todo configurable
 		$min_quantity = 1; // @todo configurable
 		$max_quantity = 10; // @todo configurable
+		$min_shipping = 0; // @todo configurable
+		$max_shipping = 100; // @todo configurable
 
 		$order_status_processing_probability = 8 / 10;
 		$order_status_completed_probability = 7 / 10;
@@ -445,7 +447,8 @@ class WC_Order_Generator {
 
 			$customer = new WC_Customer( $user_id );
 
-			$payment_method = array_rand( array( 'bacs','cheque','cod' ) );
+			$payment_methods = array( 'bacs','cheque','cod' );
+			$payment_method = $payment_methods[array_rand( $payment_methods, 1 )];
 			$order = wc_create_order( array( 'customer_id' => $user_id ) );
 			if ( !( $order instanceof WP_Error ) ) {
 
@@ -478,7 +481,14 @@ class WC_Order_Generator {
 					$order->add_product( wc_get_product( $product_id ), rand( $min_quantity, $max_quantity ) );
 				}
 
-				$order->calculate_shipping();
+// 				$shipping_methods = WC()->shipping()->get_shipping_methods();
+// 				foreach( $shipping_methods as $id => $shipping_method ) {
+// 					if ( $shipping_method->is_enabled() ) {
+// 						$order->add_shipping( $shipping_method->get_)
+// 					}
+// 				}
+ 				$order->set_shipping_total( rand( $min_shipping, $max_shipping ) );
+// 				$order->calculate_shipping();
 				$order->calculate_taxes();
 				$order->calculate_totals();
 
@@ -490,7 +500,8 @@ class WC_Order_Generator {
 					$order->set_status( 'completed' );
 				}
 				if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_change_probability ) {
-					$status = array_rand( array( 'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed' ) );
+					$statuses = array( 'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed' );
+					$status = $statuses[array_rand( $statuses, 1 )];
 					$order->set_status( $status );
 				}
 				$order->save();
