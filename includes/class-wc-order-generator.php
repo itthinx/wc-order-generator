@@ -399,9 +399,9 @@ class WC_Order_Generator {
 		$min_shipping = 0; // @todo configurable
 		$max_shipping = 100; // @todo configurable
 
-		$order_status_processing_probability = 8 / 10;
-		$order_status_completed_probability = 7 / 10;
-		$order_status_change_probability = 2 / 7;
+		$order_status_processing_probability = 8 / 10; // @todo configurable
+		$order_status_completed_probability = 7 / 10; // @todo configurable
+		$order_status_change_probability = 2 / 7; // @todo configurable
 
 		$repeat_customer_probability = 4 / 11;
 
