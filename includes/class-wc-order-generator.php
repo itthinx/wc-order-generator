@@ -481,16 +481,25 @@ class WC_Order_Generator {
 					$order->add_product( wc_get_product( $product_id ), rand( $min_quantity, $max_quantity ) );
 				}
 
-// 				$shipping_methods = WC()->shipping()->get_shipping_methods();
-// 				foreach( $shipping_methods as $id => $shipping_method ) {
-// 					if ( $shipping_method->is_enabled() ) {
-// 						$order->add_shipping( $shipping_method->get_)
-// 					}
-// 				}
- 				$order->set_shipping_total( rand( $min_shipping, $max_shipping ) );
-// 				$order->calculate_shipping();
+				$shipping_cost = rand( $min_shipping, $max_shipping );
+				$shipping_rate = new WC_Shipping_Rate( 'wc-order-generator-random-rate', 'WooCommerce Order Generator Random Rate', $shipping_cost, array(), '' );
+				$item = new WC_Order_Item_Shipping();
+				$item->set_props( array(
+					'method_title' => 'WooCommerce Order Generator Random Shipping',
+					'method_id'    => 'wc-order-generator-random-shipping',
+					'total'        => wc_format_decimal( $shipping_cost ),
+					'order_id'     => $order->get_id()
+				) );
+				foreach ( $shipping_rate->get_meta_data() as $key => $value ) {
+					$item->add_meta_data( $key, $value, true );
+				}
+				$item->save();
+				$order->add_item( $item );
+				$order->calculate_shipping();
+
 				$order->calculate_taxes();
 				$order->calculate_totals();
+				// $order->set_shipping_total( rand( $min_shipping, $max_shipping ) ); // shipping is done via rate above
 
 				$order->set_status( 'on-hold' );
 				if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_processing_probability ) {
