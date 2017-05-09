@@ -406,23 +406,6 @@ class WC_Order_Generator {
 		$data = new WC_Order_Generator_Data();
 		$user_id = $data->create_user();
 
-// 		$woocommerce->init();
-// 		$woocommerce->frontend_includes();
-// 		$session_class = apply_filters( 'woocommerce_session_handler', 'WC_Session_Handler' );
-
-// 		require_once WC()->plugin_path() .'/includes/abstracts/abstract-wc-session.php';
-// 		$woocommerce->session       = new WC_Session_Handler();
-// 		$woocommerce->cart          = new WC_Cart();
-// 		$woocommerce->customer      = new WC_Customer( $user_id );
-// 		$woocommerce->countries     = new WC_Countries();
-// 		$woocommerce->checkout      = new WC_Checkout();
-// 		$woocommerce->order_factory = new WC_Order_Factory();
-// 		$woocommerce->integrations  = new WC_Integrations();
-
-// 		if ( !defined( 'WOOCOMMERCE_CHECKOUT' ) ) {
-// 			define('WOOCOMMERCE_CHECKOUT', true);
-// 		}
-// 		$woocommerce->cart->empty_cart();
 		// that returns an emnpty array ...
 		//$product_ids = wc_get_products( array( 'status' => 'publish', 'return' => 'ids' ) );
 		// ... so ...
@@ -436,23 +419,17 @@ class WC_Order_Generator {
 			return null;
 		}
 		$n_products = rand( $min_products, $max_products );
-// 		$cart = array();
-// 		for( $i = 0; $i < $n_products; $i++ ) {
-// 			$product_id = $product_ids[rand( 0, count( $product_ids ) - 1 )];
-// 			$woocommerce->cart->add_to_cart( $product_id, rand( $min_quantity, $max_quantity ) );
-// 		}
-// 		$checkout = new WC_Checkout();
-// 		$woocommerce->cart->calculate_totals();
+
 		try {
 
-			$customer = new WC_Customer( $user_id );
-
+			$customer        = new WC_Customer( $user_id );
 			$payment_methods = array( 'bacs','cheque','cod' );
-			$payment_method = $payment_methods[array_rand( $payment_methods, 1 )];
-			$order = wc_create_order( array( 'customer_id' => $user_id ) );
+			$payment_method  = $payment_methods[array_rand( $payment_methods, 1 )];
+			$order           = wc_create_order( array( 'customer_id' => $user_id ) );
+
 			if ( !( $order instanceof WP_Error ) ) {
 
-// 				$order->set_date_created( time() - rand( 0, 365*24*60*60 ) );
+				//$order->set_date_created( time() - rand( 0, 365*24*60*60 ) );
 
 				$order->set_payment_method( $payment_method );
 
@@ -465,12 +442,10 @@ class WC_Order_Generator {
 				$order->set_billing_first_name( $customer->get_billing_first_name() );
 				$order->set_billing_last_name( $customer->get_billing_last_name() );
 				$order->set_billing_state( $customer->get_billing_state() );
-				
+
 				$order->set_shipping_address_1( $customer->get_billing_address_1() );
 				$order->set_shipping_country( $customer->get_billing_country() );
 				$order->set_shipping_postcode( $customer->get_billing_postcode() );
-				
-				
 				$order->set_shipping_city( $customer->get_billing_city() );
 				$order->set_shipping_first_name( $customer->get_billing_first_name() );
 				$order->set_shipping_last_name( $customer->get_billing_last_name() );
@@ -517,30 +492,10 @@ class WC_Order_Generator {
 				$order_id = $order->get_id();
 			}
 
-// 			$order_id = $checkout->create_order( array( 'payment_method' => $payment_method ) );
-// 			if ( !( $order_id instanceof WP_Error ) ) {
-// 				if ( $order = wc_get_order( $order_id ) ) {
-// 					$order->set_customer_id( $user_id );
-// // 					$order->set_payment_method( $payment_method );
-// 					$order->set_status( 'on-hold' );
-// 					if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_processing_probability ) {
-// 						$order->set_status( 'processing' );
-// 					}
-// 					if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_completed_probability ) {
-// 						$order->set_status( 'completed' );
-// 					}
-// 					if ( ( rand( 1, 10 ) / 10.0 ) <= $order_status_change_probability ) {
-// 						$status = array_rand( array( 'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed' ) );
-// 						$order->set_status( $status );
-// 					}
-// 				}
-// 			} else {
-// 				$order_id = null;
-// 			}
 		} catch ( Exception $e ) {
 			$order_id = null;
 		}
-// 		$woocommerce->cart->empty_cart();
+
 		return $order_id;
 	}
 
