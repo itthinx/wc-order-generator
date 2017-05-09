@@ -403,8 +403,17 @@ class WC_Order_Generator {
 		$order_status_completed_probability = 7 / 10;
 		$order_status_change_probability = 2 / 7;
 
+		$repeat_customer_probability = 4 / 11;
+
 		$data = new WC_Order_Generator_Data();
-		$user_id = $data->create_user();
+
+		$user_id = null;
+		if ( ( rand( 1, 10 ) / 10.0 ) <= $repeat_customer_probability ) {
+			$user_id = $data->get_random_user_id();
+		}
+		if ( !$user_id ) {
+			$user_id = $data->create_user();
+		}
 
 		// that returns an emnpty array ...
 		//$product_ids = wc_get_products( array( 'status' => 'publish', 'return' => 'ids' ) );
