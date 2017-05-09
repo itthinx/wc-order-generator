@@ -403,7 +403,7 @@ class WC_Order_Generator {
 		$order_status_completed_probability = 7 / 10; // @todo configurable
 		$order_status_change_probability = 2 / 7; // @todo configurable
 
-		$repeat_customer_probability = 4 / 11;
+		$repeat_customer_probability = 4 / 11; // @todo configurable
 
 		$data = new WC_Order_Generator_Data();
 
