@@ -2,9 +2,9 @@
 Contributors: itthinx
 Donate link: http://www.itthinx.com/shop/
 Tags: order, performance, generator, woocommerce, benchmark, automatic, example, orders, product, products, sample, test, tester, testing, test-tool
-Requires at least: 4.0
-Tested up to: 4.7.4
-Stable tag: 1.0.0
+Requires at least: 4.6
+Tested up to: 5.2
+Stable tag: 1.1.0
 License: GPLv3
 
 A sample order generator for WooCommerce. Useful for performance testing on large databases.
@@ -41,10 +41,12 @@ Sorry, none available at present.
 
 == Changelog ==
 
+= 1.1.0 =
+* Fixed an issue when no states are available for the country.
+
 = 1.0.0 =
 * Initial release.
 
 == Upgrade Notice ==
 
-= 1.0.0 =
-This is the initial release.
+Tested with the latest versions of WordPress and WooCommerce.

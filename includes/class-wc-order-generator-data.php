@@ -139,7 +139,7 @@ class WC_Order_Generator_Data {
 			$countries    = $wc_countries->get_allowed_countries();
 			$country      = array_rand( $countries, 1 );
 			$states       = $wc_countries->get_states( $country );
-			$state        = count( $states ) > 0 ? ( is_array( $states ) ? array_rand( $states, 1 ) : $states ) : '';
+			$state        = is_array( $states ) && count( $states ) > 0 ? array_rand( $states, 1 ) : '';
 			$city         = $this->get_city();
 			$street       = $this->get_street() . ', ' . rand( 1, 1000 );
 			$postcode     = $this->get_postcode();

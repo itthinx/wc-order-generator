@@ -2,7 +2,7 @@
 /**
  * wc-order-generator.php
  *
- * Copyright (c) 2017 "kento" Karim Rahimpur www.itthinx.com
+ * Copyright (c) 2017 - 2019 "kento" Karim Rahimpur www.itthinx.com
  *
  * This code is released under the GNU General Public License.
  * See COPYRIGHT.txt and LICENSE.txt.
@@ -21,9 +21,11 @@
  * Plugin Name: WooCommerce Order Generator
  * Plugin URI: http://www.itthinx.com/
  * Description: A sample product generator for WooCommerce. Useful for performance testing on large databases.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: itthinx
  * Author URI: http://www.itthinx.com
+ * WC requires at least: 3.0
+ * WC tested up to: 3.6
  * Donate-Link: http://www.itthinx.com
  * License: GPLv3
  */
@@ -32,7 +34,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WCORDERGEN_PLUGIN_VERSION', '1.0.0' );
+define( 'WCORDERGEN_PLUGIN_VERSION', '1.1.0' );
 define( 'WCORDERGEN_PLUGIN_DOMAIN', 'wc-order-generator' );
 define( 'WCORDERGEN_PLUGIN_FILE', __FILE__ );
 define( 'WCORDERGEN_PLUGIN_URL', plugins_url( 'wc-order-generator' ) );
