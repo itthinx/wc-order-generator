@@ -34,7 +34,7 @@ class WC_Order_Generator {
 	const IMAGE_WIDTH = 512;
 	const IMAGE_HEIGHT = 512;
 
-	const DEFAULT_LIMIT = 10000;
+	const DEFAULT_LIMIT = 100;
 
 	/**
 	 * Initialize hooks.
@@ -131,6 +131,24 @@ class WC_Order_Generator {
 			if ( isset( $_POST['action'] ) && ( $_POST['action'] == 'save' ) && wp_verify_nonce( $_POST['order-generator'], 'admin' ) ) {
 				$limit    = !empty( $_POST['limit'] ) ? intval( trim( $_POST['limit'] ) ) : self::DEFAULT_LIMIT;
 				$per_run  = !empty( $_POST['per_run'] ) ? intval( trim( $_POST['per_run'] ) ) : self::DEFAULT_PER_RUN;
+
+				$_countries = array();
+				$countries = !empty( $_POST['countries'] ) ? trim( $_POST['countries'] ) : '';
+				if ( strlen( $countries ) > 0 ) {
+					$supported_country_codes = array_keys( WC()->countries->get_countries() );
+					$countries = array_map( 'strtoupper', array_map( 'trim', explode( ',', $countries ) ) );
+					foreach ( $countries as $country ) {
+						if ( in_array( $country, $supported_country_codes ) ) {
+							$_countries[] = $country;
+						}
+					}
+				}
+				delete_option( 'wc-order-generator-countries' );
+				if ( count( $_countries ) > 0 ) {
+					sort( $_countries );
+					add_option( 'wc-order-generator-countries', $_countries, null, 'no' );
+				}
+
 // 				$titles   = !empty( $_POST['titles'] ) ? $_POST['titles'] : '';
 // 				$contents = !empty( $_POST['contents'] ) ? $_POST['contents'] : '';
 
@@ -173,10 +191,29 @@ class WC_Order_Generator {
 
 // 				delete_option( 'wc-order-generator-contents' );
 // 				add_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS, null, 'no' );
+			} else if ( isset( $_POST['action'] ) && ( $_POST['action'] == 'delete_orders' ) && wp_verify_nonce( $_POST['order-generator-delete'], 'admin' ) ) {
+				global $wpdb;
+				$post_ids = $wpdb->get_col( "SELECT DISTINCT post_id FROM $wpdb->postmeta WHERE meta_key = '_wc_order_generator' AND meta_value = 'yes'" );
+				if ( $post_ids ) {
+					foreach ( $post_ids as $post_id ) {
+						wp_delete_post( $post_id, true ); // force_delete to bypass the trash
+						do_action( 'woocommerce_delete_order', $post_id );
+					}
+				}
+			} else if ( isset( $_POST['action'] ) && ( $_POST['action'] == 'delete_users' ) && wp_verify_nonce( $_POST['order-generator-delete'], 'admin' ) ) {
+				global $wpdb;
+				$user_ids = $wpdb->get_col( "SELECT DISTINCT user_id FROM $wpdb->usermeta WHERE meta_key = '_wc_order_generator' AND meta_value = 'yes'" );
+				if ( $user_ids ) {
+					foreach ( $user_ids as $user_id ) {
+						wp_delete_user( $user_id );
+					}
+				}
 			}
 
-			$limit    = get_option( 'wc-order-generator-limit', self::DEFAULT_LIMIT );
-			$per_run  = get_option( 'wc-order-generator-per-run', self::DEFAULT_PER_RUN );
+			$limit     = get_option( 'wc-order-generator-limit', self::DEFAULT_LIMIT );
+			$per_run   = get_option( 'wc-order-generator-per-run', self::DEFAULT_PER_RUN );
+			$countries = get_option( 'wc-order-generator-countries', array() );
+
 // 			$titles   = stripslashes( get_option( 'wc-order-generator-titles', self::DEFAULT_TITLES ) );
 // 			$contents = stripslashes( get_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS ) );
 
@@ -226,6 +263,28 @@ class WC_Order_Generator {
 			echo ' ';
 			echo sprintf( __( 'Maximum %d', WCORDERGEN_PLUGIN_DOMAIN ), self::MAX_PER_RUN );
 			echo '</label>';
+			echo '</p>';
+
+			echo '<p>';
+			echo '<label>';
+			echo __( 'Countries', WCORDERGEN_PLUGIN_DOMAIN );
+			echo ' ';
+			echo sprintf( '<input type="text" name="countries" value="%s" placeholder="%s"/>', esc_attr( implode( ',', $countries ) ), esc_attr__( 'All', WCORDERGEN_PLUGIN_DOMAIN ) );
+			echo '</label>';
+			echo ' ';
+			echo '<span class="description">';
+			esc_html_e( 'Indicate country codes separated by comma. Orders for all countries will be generated if none are set here.', WCORDERGEN_PLUGIN_DOMAIN );
+			echo '</span>';
+			if ( count( $countries ) > 0 ) {
+				$country_names = array();
+				$supported_countries = WC()->countries->get_countries();
+				foreach ( $countries as $country ) {
+					$country_names[] = $supported_countries[$country];
+				}
+				echo '<div class="description">';
+				printf( esc_html__( '[%s]', WCORDERGEN_PLUGIN_DOMAIN ), implode( ', ', $country_names ) );
+				echo '</div>';
+			}
 			echo '</p>';
 
 // 			echo '<p>';
@@ -282,6 +341,10 @@ class WC_Order_Generator {
 			echo '</form>';
 			echo '</div>';
 
+			//
+			// Single Run
+			//
+
 			echo '<h2>';
 			echo __( 'Single Run', WCORDERGEN_PLUGIN_DOMAIN );
 			echo '</h2>';
@@ -308,6 +371,10 @@ class WC_Order_Generator {
 			echo '</div>';
 			echo '</form>';
 			echo '</div>';
+
+			//
+			// Continuous AJAX Run
+			//
 
 			echo '<h2>';
 			echo __( 'Continuous AJAX Run', WCORDERGEN_PLUGIN_DOMAIN );
@@ -349,6 +416,68 @@ class WC_Order_Generator {
 			echo '}';
 			echo '</script>';
 
+			//
+			// Delete orders and users
+			//
+
+			echo '<h2>';
+			echo __( 'Delete generated Orders and Users', WCORDERGEN_PLUGIN_DOMAIN );
+			echo '</h2>';
+
+			echo '<div class="delete">';
+			echo '<form name="delete" method="post" action="">';
+			echo '<div>';
+
+			echo '<p>';
+			echo __( 'Clicking the button will attempt to delete all generated orders.', WCORDERGEN_PLUGIN_DOMAIN );
+			echo ' ';
+			echo '<strong>';
+			echo __( 'Important!', WCORDERGEN_PLUGIN_DOMAIN );
+			echo '</strong>';
+			echo ' ';
+			echo __( 'Once you click the button, the process will start immediately without asking for further confirmation.', WCORDERGEN_PLUGIN_DOMAIN );
+			echo ' ';
+			echo __( 'Note that this is very rudimentary and with many orders to delete, it will likely end up in a timeout. In that case, you will have to do this several times to delete all generated orders.', WCORDERGEN_PLUGIN_DOMAIN );
+			echo '</p>';
+
+			wp_nonce_field( 'admin', 'order-generator-delete', true, true );
+
+			echo '<div class="buttons">';
+			echo sprintf( '<input class="button button-primary" type="submit" name="submit" value="%s" />', __( 'Delete Orders', WCORDERGEN_PLUGIN_DOMAIN ) );
+			echo '<input type="hidden" name="action" value="delete_orders" />';
+			echo '</div>';
+
+			echo '</div>';
+			echo '</form>';
+			echo '</div>';
+
+			echo '<div class="delete">';
+			echo '<form name="delete" method="post" action="">';
+			echo '<div>';
+
+			echo '<p>';
+			echo __( 'Clicking the button will attempt to delete all generated users.', WCORDERGEN_PLUGIN_DOMAIN );
+			echo ' ';
+			echo '<strong>';
+			echo __( 'Important!', WCORDERGEN_PLUGIN_DOMAIN );
+			echo '</strong>';
+			echo ' ';
+			echo __( 'Once you click the button, the process will start immediately without asking for further confirmation.', WCORDERGEN_PLUGIN_DOMAIN );
+			echo ' ';
+			echo __( 'Note that this is very rudimentary and with many users to delete, it will likely end up in a timeout. In that case, you will have to do this several times to delete all generated users.', WCORDERGEN_PLUGIN_DOMAIN );
+			echo '</p>';
+
+			wp_nonce_field( 'admin', 'order-generator-delete', true, true );
+
+			echo '<div class="buttons">';
+			echo sprintf( '<input class="button button-primary" type="submit" name="submit" value="%s" />', __( 'Delete Users', WCORDERGEN_PLUGIN_DOMAIN ) );
+			echo '<input type="hidden" name="action" value="delete_users" />';
+			echo '</div>';
+
+			echo '</div>';
+			echo '</form>';
+			echo '</div>';
+
 			echo '</div>'; // .order-generator-admin
 		}
 	}
@@ -380,6 +509,19 @@ class WC_Order_Generator {
 		return intval( $wpdb->get_var(
 			"SELECT count(*) FROM $wpdb->posts WHERE post_type = 'shop_order'"
 		) );
+	}
+
+	public static function generate_time() {
+		$k = 100;
+		$time = time();
+		$time = $time - (
+			(                        rand( 1, $k ) *       3 * 24*60*60 / $k ) +
+			( rand( 1, 100 ) >= 25 ? rand( 1, $k ) *       7 * 24*60*60 / $k : 0 ) +
+			( rand( 1, 100 ) >= 50 ? rand( 1, $k ) *      31 * 24*60*60 / $k : 0 ) +
+			( rand( 1, 100 ) >= 75 ? rand( 1, $k ) *     365 * 24*60*60 / $k : 0 ) +
+			( rand( 1, 100 ) >= 90 ? rand( 1, $k ) * 3 * 365 * 24*60*60 / $k : 0 )
+		);
+		return $time;
 	}
 
 	public static function create_order() {
@@ -434,11 +576,14 @@ class WC_Order_Generator {
 			$customer        = new WC_Customer( $user_id );
 			$payment_methods = array( 'bacs','cheque','cod' );
 			$payment_method  = $payment_methods[array_rand( $payment_methods, 1 )];
+			/**
+			 * @var WC_Order $order
+			 */
 			$order           = wc_create_order( array( 'customer_id' => $user_id ) );
 
 			if ( !( $order instanceof WP_Error ) ) {
 
-				//$order->set_date_created( time() - rand( 0, 365*24*60*60 ) );
+				$order->set_date_created( time() - rand( 0, 365*24*60*60 ) );
 
 				$order->set_payment_method( $payment_method );
 
@@ -497,6 +642,7 @@ class WC_Order_Generator {
 					$status = $statuses[array_rand( $statuses, 1 )];
 					$order->set_status( $status );
 				}
+				$order->add_meta_data( '_wc_order_generator', 'yes', true );
 				$order->save();
 				$order_id = $order->get_id();
 			}

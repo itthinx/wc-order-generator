@@ -134,10 +134,16 @@ class WC_Order_Generator_Data {
 		$inserted_user_id = wp_insert_user( $user );
 		if ( !( $inserted_user_id instanceof WP_Error ) ) {
 
-			$user_id      = $inserted_user_id;
 			$wc_countries = new WC_Countries();
-			$countries    = $wc_countries->get_allowed_countries();
-			$country      = array_rand( $countries, 1 );
+			$countries    = get_option( 'wc-order-generator-countries', array() );
+			if ( count( $countries ) === 0 ) {
+				$countries    = $wc_countries->get_allowed_countries();
+				$country      = array_rand( $countries, 1 );
+			} else {
+				$country = $countries[ array_rand( $countries, 1 ) ];
+			}
+
+			$user_id      = $inserted_user_id;
 			$states       = $wc_countries->get_states( $country );
 			$state        = is_array( $states ) && count( $states ) > 0 ? array_rand( $states, 1 ) : '';
 			$city         = $this->get_city();
@@ -164,7 +170,8 @@ class WC_Order_Generator_Data {
 				'shipping_state'      => $state,
 				'shipping_postcode'   => $postcode,
 				'shipping_email'      => $user['user_email'],
-				'shipping_phone'      => $phone
+				'shipping_phone'      => $phone,
+				'_wc_order_generator' => 'yes'
 			);
 
 			foreach ( $meta as $key => $value ) {
@@ -184,7 +191,7 @@ class WC_Order_Generator_Data {
 		if ( $max_user_id = $wpdb->get_var( "SELECT MAX(ID) FROM $wpdb->users" ) ) {
 			$max_user_id = intval( $max_user_id );
 			for( $i = 0; $i < $max_user_id; $i++ ) {
-				$maybe_user_id = rand( 1, $max_user_id );
+				$maybe_user_id = rand( 2, $max_user_id ); // exclude user 1 => start at 2
 				if ( $user = get_user_by( 'id', $maybe_user_id ) ) {
 					$user_id = $user->ID;
 					break;

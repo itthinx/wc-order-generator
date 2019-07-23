@@ -43,6 +43,10 @@ Sorry, none available at present.
 
 = 1.1.0 =
 * Fixed an issue when no states are available for the country.
+* Added functions to delete generated orders and users. These only work with users and orders generated as of this version 1.1.0.
+* Added an option to limit the countries used for the generated orders.
+* Now assigning a distribution of dates to generated orders over a period of maximum 3 years back from the moment of generation.
+* Changed the default limit from 10000 to only 100.
 
 = 1.0.0 =
 * Initial release.
