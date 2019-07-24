@@ -28,13 +28,10 @@ if ( !defined( 'ABSPATH' ) ) {
  */
 class WC_Order_Generator {
 
-	const MAX_PER_RUN = 100;
+	const MAX_PER_RUN     = 100;
 	const DEFAULT_PER_RUN = 10;
-
-	const IMAGE_WIDTH = 512;
-	const IMAGE_HEIGHT = 512;
-
-	const DEFAULT_LIMIT = 100;
+	const DEFAULT_LIMIT   = 100;
+	const DEFAULT_PERIOD  = 3 * 365;
 
 	/**
 	 * Initialize hooks.
@@ -129,8 +126,9 @@ class WC_Order_Generator {
 			wp_enqueue_style( 'order-generator' );
 
 			if ( isset( $_POST['action'] ) && ( $_POST['action'] == 'save' ) && wp_verify_nonce( $_POST['order-generator'], 'admin' ) ) {
-				$limit    = !empty( $_POST['limit'] ) ? intval( trim( $_POST['limit'] ) ) : self::DEFAULT_LIMIT;
-				$per_run  = !empty( $_POST['per_run'] ) ? intval( trim( $_POST['per_run'] ) ) : self::DEFAULT_PER_RUN;
+				$limit   = !empty( $_POST['limit'] ) ? intval( trim( $_POST['limit'] ) ) : self::DEFAULT_LIMIT;
+				$per_run = !empty( $_POST['per_run'] ) ? intval( trim( $_POST['per_run'] ) ) : self::DEFAULT_PER_RUN;
+				$period  = !empty( $_POST['period'] ) ? intval( trim( $_POST['period'] ) ) : self::DEFAULT_PERIOD;
 
 				$_countries = array();
 				$countries = !empty( $_POST['countries'] ) ? trim( $_POST['countries'] ) : '';
@@ -166,6 +164,12 @@ class WC_Order_Generator {
 				}
 				delete_option( 'wc-order-generator-per-run' );
 				add_option( 'wc-order-generator-per-run', $per_run, null, 'no' );
+
+				if ( $period < 0 ) {
+					$period = self::DEFAULT_PERIOD;
+				}
+				delete_option( 'wc-order-generator-period' );
+				add_option( 'wc-order-generator-period', $period, null, 'no' );
 
 // 				delete_option( 'wc-order-generator-titles' );
 // 				add_option( 'wc-order-generator-title', $titles, null, 'no' );
@@ -213,6 +217,7 @@ class WC_Order_Generator {
 			$limit     = get_option( 'wc-order-generator-limit', self::DEFAULT_LIMIT );
 			$per_run   = get_option( 'wc-order-generator-per-run', self::DEFAULT_PER_RUN );
 			$countries = get_option( 'wc-order-generator-countries', array() );
+			$period    = get_option( 'wc-order-generator-period', self::DEFAULT_PERIOD );
 
 // 			$titles   = stripslashes( get_option( 'wc-order-generator-titles', self::DEFAULT_TITLES ) );
 // 			$contents = stripslashes( get_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS ) );
@@ -262,6 +267,16 @@ class WC_Order_Generator {
 			echo sprintf( '<input type="text" name="per_run" value="%d" />', $per_run );
 			echo ' ';
 			echo sprintf( __( 'Maximum %d', WCORDERGEN_PLUGIN_DOMAIN ), self::MAX_PER_RUN );
+			echo '</label>';
+			echo '</p>';
+
+			echo '<p>';
+			echo '<label>';
+			echo __( 'Period', WCORDERGEN_PLUGIN_DOMAIN );
+			echo ' ';
+			echo sprintf( '<input type="text" name="per_run" value="%d" />', $period );
+			echo ' ';
+			echo __( 'The dates of generated orders are spread out over this number of days back from the current date, with a heavier focus on more recent dates.', WCORDERGEN_PLUGIN_DOMAIN );
 			echo '</label>';
 			echo '</p>';
 
@@ -511,17 +526,18 @@ class WC_Order_Generator {
 		) );
 	}
 
-	public static function generate_time() {
-		$k = 100;
+	public static function generate_time( $period = 365 ) {
+		$f    = $period / 365.0;
+		$k    = 100;
 		$time = time();
 		$time = $time - (
-			(                        rand( 1, $k ) *       3 * 24*60*60 / $k ) +
-			( rand( 1, 100 ) >= 25 ? rand( 1, $k ) *       7 * 24*60*60 / $k : 0 ) +
-			( rand( 1, 100 ) >= 50 ? rand( 1, $k ) *      31 * 24*60*60 / $k : 0 ) +
-			( rand( 1, 100 ) >= 75 ? rand( 1, $k ) *     365 * 24*60*60 / $k : 0 ) +
-			( rand( 1, 100 ) >= 90 ? rand( 1, $k ) * 3 * 365 * 24*60*60 / $k : 0 )
+			(                        rand( 1, $k ) *       7 * $f * 24*60*60 / $k ) +
+			( rand( 1, 100 ) >= 15 ? rand( 1, $k ) *      14 * $f * 24*60*60 / $k : 0 ) +
+			( rand( 1, 100 ) >= 50 ? rand( 1, $k ) *      31 * $f * 24*60*60 / $k : 0 ) +
+			( rand( 1, 100 ) >= 75 ? rand( 1, $k ) *     180 * $f * 24*60*60 / $k : 0 ) +
+			( rand( 1, 100 ) >= 90 ? rand( 1, $k ) * 1 * 365 * $f * 24*60*60 / $k : 0 )
 		);
-		return $time;
+		return intval( $time );
 	}
 
 	public static function create_order() {
@@ -557,15 +573,24 @@ class WC_Order_Generator {
 			$user_id = $data->create_user();
 		}
 
-		// that returns an emnpty array ...
-		//$product_ids = wc_get_products( array( 'status' => 'publish', 'return' => 'ids' ) );
-		// ... so ...
-		$product_ids = array();
-		$_product_ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'product' AND post_status='publish'" );
-		foreach( $_product_ids as $product_id ) {
-			$product_ids[] = $product_id;
+		// get only visible products
+		$product_ids = wc_get_products(
+			array(
+				'status'     => 'publish',
+				'limit'      => -1,
+				'visibility' => 'visible',
+				'return'     => 'ids'
+			)
+		);
+		if ( count( $product_ids ) === 0 ) {
+			// alternative if nothing was produced above
+			$product_ids = array();
+			$_product_ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type = 'product' AND post_status='publish'" );
+			foreach( $_product_ids as $product_id ) {
+				$product_ids[] = $product_id;
+			}
+			unset( $_product_ids );
 		}
-		unset( $_product_ids );
 		if ( count( $product_ids ) == 0 ) {
 			return null;
 		}
@@ -583,7 +608,9 @@ class WC_Order_Generator {
 
 			if ( !( $order instanceof WP_Error ) ) {
 
-				$order->set_date_created( time() - rand( 0, 365*24*60*60 ) );
+				$period = get_option( 'wc-order-generator-period', self::DEFAULT_PERIOD );
+				$time = self::generate_time( $period );
+				$order->set_date_created( $time );
 
 				$order->set_payment_method( $payment_method );
 
