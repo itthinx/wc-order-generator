@@ -274,7 +274,7 @@ class WC_Order_Generator {
 			echo '<label>';
 			echo __( 'Period', WCORDERGEN_PLUGIN_DOMAIN );
 			echo ' ';
-			echo sprintf( '<input type="text" name="per_run" value="%d" />', $period );
+			echo sprintf( '<input type="text" name="period" value="%d" />', $period );
 			echo ' ';
 			echo __( 'The dates of generated orders are spread out over this number of days back from the current date, with a heavier focus on more recent dates.', WCORDERGEN_PLUGIN_DOMAIN );
 			echo '</label>';
