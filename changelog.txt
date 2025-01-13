@@ -5,6 +5,7 @@
 * WooCommerce 9.6 compatible.
 * Declares HPOS compatibility.
 * Added plugin header, requires woocommerce.
+* Revised deletion of generated orders.
 
 = 1.1.0 =
 * Fixed an issue when no states are available for the country.
