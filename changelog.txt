@@ -3,6 +3,8 @@
 = 1.2.0 =
 * WordPress 6.7 compatible.
 * WooCommerce 9.6 compatible.
+* Declares HPOS compatibility.
+* Added plugin header, requires woocommerce.
 
 = 1.1.0 =
 * Fixed an issue when no states are available for the country.

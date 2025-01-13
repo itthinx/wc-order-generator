@@ -2,7 +2,7 @@
 /**
  * wc-order-generator.php
  *
- * Copyright (c) 2017 - 2019 "kento" Karim Rahimpur www.itthinx.com
+ * Copyright (c) 2017 - 2025 "kento" Karim Rahimpur www.itthinx.com
  *
  * This code is released under the GNU General Public License.
  * See COPYRIGHT.txt and LICENSE.txt.
@@ -26,6 +26,7 @@
  * Author URI: http://www.itthinx.com
  * WC requires at least: 3.0
  * WC tested up to: 9.6
+ * Requires Plugins: woocommerce
  * Donate-Link: http://www.itthinx.com
  * License: GPLv3
  */
@@ -48,3 +49,11 @@ function wc_order_generator_plugins_loaded() {
 	}
 }
 add_action( 'plugins_loaded', 'wc_order_generator_plugins_loaded' );
+
+
+// @since 1.2.0 Declare HPOS compatibility
+add_action( 'before_woocommerce_init', function() {
+	if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', WCORDERGEN_PLUGIN_FILE, true );
+	}
+} );
