@@ -94,6 +94,26 @@ class WC_Order_Generator {
 	}
 
 	/**
+	 * Filter for generated orders.
+	 *
+	 * @since 1.2.0
+	 *
+	 * @param array $query
+	 * @param array $query_vars
+	 *
+	 * @return array
+	 */
+	public static function woocommerce_order_data_store_cpt_get_orders_query( $query, $query_vars ) {
+		if ( ! empty( $query_vars['wc_order_generator'] ) && $query_vars['wc_order_generator'] === true ) {
+			$query['meta_query'][] = array(
+				'key' => '_wc_order_generator',
+				'value' => 'yes',
+			);
+		}
+		return $query;
+	}
+
+	/**
 	 * AJAX request handler.
 	 * 
 	 * If a valid order generator request is recognized,
@@ -147,8 +167,8 @@ class WC_Order_Generator {
 					add_option( 'wc-order-generator-countries', $_countries, null, 'no' );
 				}
 
-// 				$titles   = !empty( $_POST['titles'] ) ? $_POST['titles'] : '';
-// 				$contents = !empty( $_POST['contents'] ) ? $_POST['contents'] : '';
+				// $titles   = !empty( $_POST['titles'] ) ? $_POST['titles'] : '';
+				// $contents = !empty( $_POST['contents'] ) ? $_POST['contents'] : '';
 
 				if ( $limit < 0 ) {
 					$limit = self::DEFAULT_LIMIT;
@@ -171,11 +191,11 @@ class WC_Order_Generator {
 				delete_option( 'wc-order-generator-period' );
 				add_option( 'wc-order-generator-period', $period, null, 'no' );
 
-// 				delete_option( 'wc-order-generator-titles' );
-// 				add_option( 'wc-order-generator-title', $titles, null, 'no' );
+				// delete_option( 'wc-order-generator-titles' );
+				// add_option( 'wc-order-generator-title', $titles, null, 'no' );
 
-// 				delete_option( 'wc-order-generator-contents' );
-// 				add_option( 'wc-order-generator-contents', $contents, null, 'no' );
+				// delete_option( 'wc-order-generator-contents' );
+				// add_option( 'wc-order-generator-contents', $contents, null, 'no' );
 			} else if ( isset( $_POST['action'] ) && ( $_POST['action'] == 'generate' ) && wp_verify_nonce( $_POST['order-generate'], 'admin' ) ) {
 				$max = isset( $_POST['max'] ) ? intval( $_POST['max'] ) : 0;
 				if ( $max > 0 ) {
@@ -190,20 +210,32 @@ class WC_Order_Generator {
 				delete_option( 'wc-order-generator-per-run' );
 				add_option( 'wc-order-generator-per-run', self::DEFAULT_PER_RUN, null, 'no' );
 
-// 				delete_option( 'wc-order-generator-titles' );
-// 				add_option( 'wc-order-generator-title', self::DEFAULT_TITLES, null, 'no' );
+				// delete_option( 'wc-order-generator-titles' );
+				// add_option( 'wc-order-generator-title', self::DEFAULT_TITLES, null, 'no' );
 
-// 				delete_option( 'wc-order-generator-contents' );
-// 				add_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS, null, 'no' );
+				// delete_option( 'wc-order-generator-contents' );
+				// add_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS, null, 'no' );
 			} else if ( isset( $_POST['action'] ) && ( $_POST['action'] == 'delete_orders' ) && wp_verify_nonce( $_POST['order-generator-delete'], 'admin' ) ) {
 				global $wpdb;
-				$post_ids = $wpdb->get_col( "SELECT DISTINCT post_id FROM $wpdb->postmeta WHERE meta_key = '_wc_order_generator' AND meta_value = 'yes'" );
-				if ( $post_ids ) {
-					foreach ( $post_ids as $post_id ) {
-						wp_delete_post( $post_id, true ); // force_delete to bypass the trash
-						do_action( 'woocommerce_delete_order', $post_id );
+				add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'woocommerce_order_data_store_cpt_get_orders_query' ), 10, 2 );
+				$ids = wc_get_orders( array(
+					'limit' => -1,
+					'return' => 'ids',
+					'wc_order_generator' => true
+				) );
+				foreach ( $ids as $id ) {
+					$order = wc_get_order( $id );
+					if ( $order instanceof WC_Order ) {
+						$order->delete( true );
 					}
 				}
+				// $post_ids = $wpdb->get_col( "SELECT DISTINCT post_id FROM $wpdb->postmeta WHERE meta_key = '_wc_order_generator' AND meta_value = 'yes'" );
+				// if ( $post_ids ) {
+				// 	foreach ( $post_ids as $post_id ) {
+				// 		wp_delete_post( $post_id, true ); // force_delete to bypass the trash
+				// 		do_action( 'woocommerce_delete_order', $post_id );
+				// 	}
+				// }
 			} else if ( isset( $_POST['action'] ) && ( $_POST['action'] == 'delete_users' ) && wp_verify_nonce( $_POST['order-generator-delete'], 'admin' ) ) {
 				global $wpdb;
 				$user_ids = $wpdb->get_col( "SELECT DISTINCT user_id FROM $wpdb->usermeta WHERE meta_key = '_wc_order_generator' AND meta_value = 'yes'" );
@@ -219,12 +251,12 @@ class WC_Order_Generator {
 			$countries = get_option( 'wc-order-generator-countries', array() );
 			$period    = get_option( 'wc-order-generator-period', self::DEFAULT_PERIOD );
 
-// 			$titles   = stripslashes( get_option( 'wc-order-generator-titles', self::DEFAULT_TITLES ) );
-// 			$contents = stripslashes( get_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS ) );
+			// $titles   = stripslashes( get_option( 'wc-order-generator-titles', self::DEFAULT_TITLES ) );
+			// $contents = stripslashes( get_option( 'wc-order-generator-contents', self::DEFAULT_CONTENTS ) );
 
-// 			$titles = explode( "\n", $titles );
-// 			sort( $titles );
-// 			$titles = trim( implode( "\n", $titles ) );
+			// $titles = explode( "\n", $titles );
+			// sort( $titles );
+			// $titles = trim( implode( "\n", $titles ) );
 
 			echo '<h1>';
 			echo __( 'Order Generator', WCORDERGEN_PLUGIN_DOMAIN );
@@ -302,25 +334,25 @@ class WC_Order_Generator {
 			}
 			echo '</p>';
 
-// 			echo '<p>';
-// 			echo '<label>';
-// 			echo __( 'Titles', WCORDERGEN_PLUGIN_DOMAIN );
-// 			echo '<br/>';
-// 			echo '<textarea name="titles" style="height:10em;width:90%;">';
-// 			echo htmlentities( $titles );
-// 			echo '</textarea>';
-// 			echo '</label>';
-// 			echo '</p>';
+			// echo '<p>';
+			// echo '<label>';
+			// echo __( 'Titles', WCORDERGEN_PLUGIN_DOMAIN );
+			// echo '<br/>';
+			// echo '<textarea name="titles" style="height:10em;width:90%;">';
+			// echo htmlentities( $titles );
+			// echo '</textarea>';
+			// echo '</label>';
+			// echo '</p>';
 
-// 			echo '<p>';
-// 			echo '<label>';
-// 			echo __( 'Contents', WCORDERGEN_PLUGIN_DOMAIN );
-// 			echo '<br/>';
-// 			echo '<textarea name="contents" style="height:20em;width:90%;">';
-// 			echo htmlentities( $contents );
-// 			echo '</textarea>';
-// 			echo '</label>';
-// 			echo '</p>';
+			// echo '<p>';
+			// echo '<label>';
+			// echo __( 'Contents', WCORDERGEN_PLUGIN_DOMAIN );
+			// echo '<br/>';
+			// echo '<textarea name="contents" style="height:20em;width:90%;">';
+			// echo htmlentities( $contents );
+			// echo '</textarea>';
+			// echo '</label>';
+			// echo '</p>';
 
 			wp_nonce_field( 'admin', 'order-generator', true, true );
 
@@ -520,10 +552,8 @@ class WC_Order_Generator {
 	 * @return int
 	 */
 	public static function get_order_count() {
-		global $wpdb;
-		return intval( $wpdb->get_var(
-			"SELECT count(*) FROM $wpdb->posts WHERE post_type = 'shop_order'"
-		) );
+		$ids = wc_get_orders( array( 'limit' => -1, 'return' => 'ids' ) );
+		return count( $ids );
 	}
 
 	public static function generate_time( $period = 365 ) {

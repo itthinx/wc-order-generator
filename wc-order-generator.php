@@ -2,7 +2,7 @@
 /**
  * wc-order-generator.php
  *
- * Copyright (c) 2017 - 2019 "kento" Karim Rahimpur www.itthinx.com
+ * Copyright (c) 2017 - 2025 "kento" Karim Rahimpur www.itthinx.com
  *
  * This code is released under the GNU General Public License.
  * See COPYRIGHT.txt and LICENSE.txt.
@@ -21,11 +21,12 @@
  * Plugin Name: WooCommerce Order Generator
  * Plugin URI: http://www.itthinx.com/
  * Description: A sample product generator for WooCommerce. Useful for performance testing on large databases.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: itthinx
  * Author URI: http://www.itthinx.com
  * WC requires at least: 3.0
- * WC tested up to: 3.6
+ * WC tested up to: 9.6
+ * Requires Plugins: woocommerce
  * Donate-Link: http://www.itthinx.com
  * License: GPLv3
  */
@@ -34,7 +35,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WCORDERGEN_PLUGIN_VERSION', '1.1.0' );
+define( 'WCORDERGEN_PLUGIN_VERSION', '1.2.0' );
 define( 'WCORDERGEN_PLUGIN_DOMAIN', 'wc-order-generator' );
 define( 'WCORDERGEN_PLUGIN_FILE', __FILE__ );
 define( 'WCORDERGEN_PLUGIN_URL', plugins_url( 'wc-order-generator' ) );
@@ -48,3 +49,11 @@ function wc_order_generator_plugins_loaded() {
 	}
 }
 add_action( 'plugins_loaded', 'wc_order_generator_plugins_loaded' );
+
+
+// @since 1.2.0 Declare HPOS compatibility
+add_action( 'before_woocommerce_init', function() {
+	if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', WCORDERGEN_PLUGIN_FILE, true );
+	}
+} );
