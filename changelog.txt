@@ -1,5 +1,9 @@
 *** WooCommerce Order Generator ***
 
+= 1.2.0 =
+* WordPress 6.7 compatible.
+* WooCommerce 9.6 compatible.
+
 = 1.1.0 =
 * Fixed an issue when no states are available for the country.
 * Added functions to delete generated orders and users. These only work with users and orders generated as of this version 1.1.0.
