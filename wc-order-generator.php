@@ -21,11 +21,11 @@
  * Plugin Name: WooCommerce Order Generator
  * Plugin URI: http://www.itthinx.com/
  * Description: A sample product generator for WooCommerce. Useful for performance testing on large databases.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: itthinx
  * Author URI: http://www.itthinx.com
  * WC requires at least: 3.0
- * WC tested up to: 9.6
+ * WC tested up to: 10.9
  * Requires Plugins: woocommerce
  * Donate-Link: http://www.itthinx.com
  * License: GPLv3
@@ -35,7 +35,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WCORDERGEN_PLUGIN_VERSION', '1.2.0' );
+define( 'WCORDERGEN_PLUGIN_VERSION', '1.3.0' );
 define( 'WCORDERGEN_PLUGIN_DOMAIN', 'wc-order-generator' );
 define( 'WCORDERGEN_PLUGIN_FILE', __FILE__ );
 define( 'WCORDERGEN_PLUGIN_URL', plugins_url( 'wc-order-generator' ) );
